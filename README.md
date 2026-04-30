@@ -46,48 +46,17 @@ Color changes based on how much of your daily limit you've used:
 
 ## Installation
 
-### Step 1 — Download the extension
-
-Click **Code → Download ZIP** on this page, then unzip the folder.
-
-Or clone with git:
-```
-git clone https://github.com/YOUR_USERNAME/chatgpt-counter.git
-```
-Or
 ### Chrome / Edge / Chromium
 
 1. Download [chatgpt-tokens-counter.zip](https://github.com/Dhruvg0/Chatgpt-token-counter/releases/download/v1.7.0/chatgpt-tokens-counter.zip)
 2. Go to `chrome://extensions` and enable **Developer mode**
 3. Drag and drop the zip onto the page
----
 
-### Step 2 — Open Chrome Extensions
+### Manual (from source)
 
-In your browser address bar, go to:
-```
-chrome://extensions
-```
-
----
-
-### Step 3 — Enable Developer Mode
-
-Toggle **Developer mode** on in the **top-right corner** of the extensions page.
-
----
-
-### Step 4 — Load the extension
-
-Click **Load unpacked**, then select the `chatgpt-counter-apple` folder (the one that contains `manifest.json`).
-
-> 💡 **Tip:** You can also drag and drop the entire `chatgpt-counter-apple` folder directly onto the `chrome://extensions` page — it loads automatically.
-
----
-
-### Step 5 — You're done
-
-Go to [chatgpt.com](https://chatgpt.com) and the counter bar will appear at the top of the page.
+1. Clone or download this repo
+2. Go to `chrome://extensions` and enable **Developer mode**
+3. Click **Load unpacked** and select the `chatgpt-tokens-counter` folder
 
 ---
 
@@ -115,7 +84,7 @@ Go to [chatgpt.com](https://chatgpt.com) and the counter bar will appear at the 
 ## Project Structure
 
 ```
-chatgpt-counter-apple/
+chatgpt-tokens-counter/
 ├── manifest.json              # Extension manifest (v3)
 ├── icons/
 │   ├── icon16.png
