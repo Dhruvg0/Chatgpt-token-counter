@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "ChatGPT Counter",
+  "version": "1.7.0",
+  "description": "Shows approximate token count and context usage on chatgpt.com. Remembers each chat's count.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": { "default_title": "ChatGPT Counter" },
+  "permissions": ["storage"],
+  "content_scripts": [
+    {
+      "matches": ["https://chatgpt.com/*"],
+      "run_at": "document_idle",
+      "world": "ISOLATED",
+      "css": ["src/styles.css"],
+      "js": [
+        "src/content/constants.js",
+        "src/content/ui.js",
+        "src/content/main.js"
+      ]
+    }
+  ]
+}

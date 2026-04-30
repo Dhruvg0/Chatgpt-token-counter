@@ -1,0 +1,173 @@
+/* ChatGPT Counter — Compact Pill UI */
+
+#gc-counter-bar {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px 0 8px;
+  height: 28px;
+  position: sticky;
+  top: 0;
+  z-index: 9999;
+  width: 100%;
+
+  background: rgba(18, 18, 20, 0.82);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  backdrop-filter: blur(20px) saturate(160%);
+  border-bottom: 0.5px solid rgba(255, 255, 255, 0.055);
+
+  font-family: -apple-system, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.75);
+  letter-spacing: -0.01em;
+  user-select: none;
+  box-sizing: border-box;
+}
+
+/* ── Arc ring — tiny ── */
+#gc-arc-wrap {
+  flex-shrink: 0;
+  position: relative;
+  width: 20px;
+  height: 20px;
+}
+#gc-arc-svg {
+  width: 20px;
+  height: 20px;
+  transform: rotate(-90deg);
+  display: block;
+}
+#gc-arc-track {
+  fill: none;
+  stroke: rgba(255,255,255,0.08);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+#gc-arc-fill {
+  fill: none;
+  stroke: #0A84FF;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 56.55;
+  stroke-dashoffset: 56.55;
+  transition: stroke-dashoffset 0.6s cubic-bezier(0.22,1,0.36,1),
+              stroke 0.4s ease;
+}
+
+/* ── Model tag ── */
+#gc-model-tag {
+  font-size: 9.5px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.28);
+  flex-shrink: 0;
+}
+
+/* ── Thin progress track ── */
+#gc-track-bg {
+  position: relative;
+  flex: 1;
+  height: 3px;
+  background: rgba(255,255,255,0.07);
+  border-radius: 99px;
+  overflow: hidden;
+  min-width: 60px;
+  max-width: 180px;
+}
+#gc-track-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0%;
+  height: 100%;
+  border-radius: 99px;
+  background: #0A84FF;
+  transition: width 0.6s cubic-bezier(0.22,1,0.36,1), background 0.4s ease;
+}
+
+/* ── Token count ── */
+#gc-token-label {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+#gc-used {
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: -0.04em;
+  color: #0A84FF;
+  transition: color 0.4s ease;
+}
+#gc-sep {
+  font-size: 10px;
+  color: rgba(255,255,255,0.15);
+  margin: 0 1px;
+}
+#gc-limit {
+  font-size: 10px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.22);
+  letter-spacing: -0.02em;
+}
+#gc-pct-badge {
+  font-size: 9.5px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.22);
+  letter-spacing: -0.01em;
+  transition: color 0.4s ease;
+}
+
+/* ── Plan selector ── */
+#gc-plan-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background: rgba(255,255,255,0.06);
+  border: 0.5px solid rgba(255,255,255,0.09);
+  border-radius: 5px;
+  color: rgba(255,255,255,0.38);
+  font-family: inherit;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  padding: 2px 18px 2px 6px;
+  cursor: pointer;
+  outline: none;
+  flex-shrink: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='7' height='4'%3E%3Cpath d='M0 0l3.5 4L7 0z' fill='rgba(255,255,255,0.22)'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 5px center;
+  transition: background-color 0.2s, color 0.2s;
+}
+#gc-plan-select:hover {
+  background-color: rgba(255,255,255,0.10);
+  color: rgba(255,255,255,0.6);
+}
+#gc-plan-select option {
+  background: #1c1c1e;
+  color: #fff;
+}
+
+/* ── Generating dot ── */
+#gc-pulse {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #30D158;
+  flex-shrink: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+#gc-pulse.on {
+  opacity: 1;
+  animation: gc-breathe 1.6s ease-in-out infinite;
+}
+@keyframes gc-breathe {
+  0%,100% { box-shadow: 0 0 0 0 rgba(48,209,88,0.6); }
+  50%      { box-shadow: 0 0 0 4px rgba(48,209,88,0); }
+}
+
+/* ── Spacer ── */
+.gc-spacer { flex: 1; }
