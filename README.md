@@ -5,13 +5,6 @@ A lightweight browser extension that tracks your **daily token usage** on [chatg
 ![ChatGPT Counter in action](screenshot-main.png)
 
 ---
-## Installation
-
-### Chrome / Edge / Chromium
-
-1. Download [chatgpt-tokens-counter.zip](https://github.com/Dhruvg0/Chatgpt-token-counter/releases/download/v1.7.0/chatgpt-tokens-counter.zip)
-2. Go to `chrome://extensions` and enable **Developer mode**
-3. Drag and drop the zip onto the page
 
 ## What It Looks Like
 
@@ -62,6 +55,11 @@ Or clone with git:
 git clone https://github.com/YOUR_USERNAME/chatgpt-counter.git
 ```
 
+### Chrome / Edge / Chromium
+
+1. Download [chatgpt-tokens-counter.zip](https://github.com/Dhruvg0/Chatgpt-token-counter/releases/download/v1.7.0/chatgpt-tokens-counter.zip)
+2. Go to `chrome://extensions` and enable **Developer mode**
+3. Drag and drop the zip onto the page
 ---
 
 ### Step 2 — Open Chrome Extensions
