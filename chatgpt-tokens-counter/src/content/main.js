@@ -1,5 +1,9 @@
 // ChatGPT Counter — main.js
-// Tracks TOTAL tokens used today across ALL chats, resets at midnight.
+// Tracks TOTAL tokens used TODAY across ALL chats, resets at midnight.
+//
+// KEY DESIGN: We only count tokens from messages that appear AFTER we
+// "settle" on a chat. Old history (including lazy-loaded scroll-up content)
+// is never counted. New messages always appear at the BOTTOM of the list.
 (() => {
   'use strict';
 
@@ -7,15 +11,12 @@
   const ui = new GC.ui.CounterUI();
   ui.initialize();
 
-  function estimateTokens(chars) {
-    return Math.ceil((typeof chars === 'number' ? chars : (chars?.length || 0)) / 4);
+  function estimateTokens(text) {
+    return Math.ceil((text?.length || 0) / 4);
   }
 
-  function getAllMessageText() {
-    const msgs = document.querySelectorAll('[data-message-author-role]');
-    let total = '';
-    for (const m of msgs) total += m.innerText || m.textContent || '';
-    return total;
+  function getAllMessages() {
+    return Array.from(document.querySelectorAll('[data-message-author-role]'));
   }
 
   function detectModel() {
@@ -34,72 +35,94 @@
     return null;
   }
 
-  // ── Daily storage helpers ─────────────────────────────────────────────────
-  // Today's date string e.g. "2025-04-28"
+  // ── Storage helpers ────────────────────────────────────────────────────────
   function todayKey() {
     return 'gc:daily:' + new Date().toISOString().slice(0, 10);
   }
 
-  // Chat-specific key to track the last known token count per chat
-  // so we can compute the DELTA when a chat grows
   function chatKey(url) {
     const match = url.match(/\/c\/([a-zA-Z0-9-]+)/);
     return match ? 'gc:chat:' + match[1] : null;
   }
 
-  // Load daily total + all chat snapshots, call cb({ daily, chats })
-  function loadState(cb) {
+  function loadDailyTotal(cb) {
     const tKey = todayKey();
     chrome.storage.local.get(null, (all) => {
-      // Clear old daily keys (keep only today's)
-      const oldKeys = Object.keys(all).filter(
-        k => k.startsWith('gc:daily:') && k !== tKey
-      );
-      if (oldKeys.length) chrome.storage.local.remove(oldKeys);
-
-      cb({
-        daily: all[tKey] || 0,
-        chats: all, // full map, we'll look up gc:chat:* as needed
-      });
+      // Purge old daily keys
+      const old = Object.keys(all).filter(k => k.startsWith('gc:daily:') && k !== tKey);
+      if (old.length) chrome.storage.local.remove(old);
+      cb(all[tKey] || 0);
     });
   }
 
-  // ── State ──────────────────────────────────────────────────────────────────
-  let navLock       = false;
-  let isGenerating  = false;
-  let genTimer      = null;
-  let lastText      = '';
-  let dailyTokens   = 0;   // running total for today
-  let chatTokens    = 0;   // tokens counted for the CURRENT chat this session
+  function saveDailyTotal(n) {
+    chrome.storage.local.set({ [todayKey()]: n });
+  }
 
-  // Load persisted daily total on boot
-  loadState(({ daily }) => {
+  // ── State ──────────────────────────────────────────────────────────────────
+  let navLock      = false;
+  let isGenerating = false;
+  let genTimer     = null;
+  let dailyTokens  = 0;
+
+  // After settling on a chat, we record the DOM elements that already existed.
+  // Only elements that appear AFTER this set are "new" and get counted.
+  let baselineElements = new Set(); // Set of DOM elements present at settle time
+  // Track which new elements we've already counted (element → token count)
+  let countedElements  = new Map();
+
+  // ── Boot ───────────────────────────────────────────────────────────────────
+  loadDailyTotal((daily) => {
     dailyTokens = daily;
     ui.setExactTokens(dailyTokens);
-    setTimeout(update, 1000);
+
+    // Settle: record all current messages as baseline (don't count them)
+    setTimeout(settle, 1200);
   });
 
+  function settle() {
+    const msgs = getAllMessages();
+    baselineElements = new Set(msgs);
+    countedElements  = new Map();
+    console.debug('[GC] Settled. Baseline:', msgs.length, 'messages (not counted)');
+
+    const model = detectModel();
+    if (model) ui.setModel(model);
+  }
+
+  // ── Update: only count messages NOT in baseline ────────────────────────────
   function update() {
     if (navLock) return;
 
     const model = detectModel();
     if (model) ui.setModel(model);
 
-    const text    = getAllMessageText();
-    if (text === lastText) return;
+    const msgs = getAllMessages();
+    let changed = false;
 
-    const newChatTokens = estimateTokens(text.length);
-    const delta         = Math.max(0, newChatTokens - chatTokens); // only add new tokens
+    for (const el of msgs) {
+      // Skip any message that was present when we settled
+      if (baselineElements.has(el)) continue;
 
-    lastText   = text;
-    chatTokens = newChatTokens;
+      const text   = el.innerText || el.textContent || '';
+      const tokens = estimateTokens(text);
 
-    if (delta > 0) {
-      dailyTokens += delta;
+      // If we haven't counted this element yet, or its token count grew
+      // (assistant streaming), update the delta
+      const prev  = countedElements.get(el) || 0;
+      const delta = tokens - prev;
+
+      if (delta > 0) {
+        countedElements.set(el, tokens);
+        dailyTokens += delta;
+        changed = true;
+        console.debug('[GC] Counted delta', delta, 'for role:', el.dataset.messageAuthorRole);
+      }
+    }
+
+    if (changed) {
       ui.setExactTokens(dailyTokens);
-
-      // Persist daily total
-      chrome.storage.local.set({ [todayKey()]: dailyTokens });
+      saveDailyTotal(dailyTokens);
     }
   }
 
@@ -107,7 +130,7 @@
   const observer = new MutationObserver(() => {
     if (navLock) return;
     if (genTimer) clearTimeout(genTimer);
-    genTimer = setTimeout(update, 50);
+    genTimer = setTimeout(update, 80);
 
     const streaming = !!document.querySelector(
       '[data-testid="stop-button"], button[aria-label="Stop streaming"]'
@@ -120,51 +143,32 @@
 
   observer.observe(document.body, { childList: true, subtree: true, characterData: true });
 
-  // ── Navigation: switching chats ────────────────────────────────────────────
-  // When user switches to a different chat, we need to:
-  // 1. Save this chat's token count snapshot
-  // 2. Load the new chat's snapshot so we know its baseline (already-counted tokens)
+  // ── Navigation ─────────────────────────────────────────────────────────────
   let lastUrl = location.href;
 
   function onNavigate(newUrl) {
-    // Save snapshot of chat we're leaving
+    navLock = true;
+
+    // Save this chat's contribution before leaving
     const oldCKey = chatKey(lastUrl);
     if (oldCKey) {
-      chrome.storage.local.set({ [oldCKey]: chatTokens });
+      chrome.storage.local.set({ [oldCKey]: dailyTokens });
     }
 
-    navLock    = true;
-    lastText   = '';
-    chatTokens = 0;
+    isGenerating = false;
+    ui.setGenerating(false);
 
-    // Load snapshot for the chat we're entering
-    const newCKey = chatKey(newUrl);
-    if (newCKey) {
-      chrome.storage.local.get([newCKey], (r) => {
-        // chatTokens = tokens already counted from this chat in today's daily total
-        chatTokens = r[newCKey] || 0;
-        setTimeout(() => {
-          navLock  = false;
-          lastText = '';
-          update();
-        }, 1200);
-      });
-    } else {
-      // New chat page — no ID yet
-      chatTokens = 0;
-      setTimeout(() => {
-        navLock  = false;
-        lastText = '';
-        update();
-      }, 1200);
-    }
+    // Wait for new chat DOM to settle, then re-baseline
+    setTimeout(() => {
+      settle();
+      navLock = false;
+    }, 1400);
   }
 
   setInterval(() => {
     if (location.href !== lastUrl) {
-      const prev = lastUrl;
       lastUrl = location.href;
-      onNavigate(location.href, prev);
+      onNavigate(location.href);
     }
   }, 500);
 
