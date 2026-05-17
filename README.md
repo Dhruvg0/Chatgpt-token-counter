@@ -86,17 +86,22 @@ Color changes based on how much of your daily limit you've used:
 
 ```
 chatgpt-tokens-counter/
-├── manifest.json              # Extension manifest (v3)
+├── manifest.json                # Extension manifest (v3)
 ├── icons/
 │   ├── icon16.png
 │   ├── icon48.png
 │   └── icon128.png
 └── src/
-    ├── styles.css             # Counter bar styles
+    ├── styles.css               # Counter bar styles
+    ├── injected/
+    │   └── bridge.js            # Fetch interceptor (MAIN world)
+    ├── vendor/
+    │   └── o200k_base.js        # Real tokenizer (gpt-4o, o1, o3, o4-mini)
     └── content/
-        ├── constants.js       # Model limits, plan limits, thresholds
-        ├── ui.js              # Counter bar UI component
-        └── main.js            # Token counting, navigation, storage
+        ├── bridge-client.js     # Injects bridge, postMessage relay
+        ├── constants.js         # Model limits, plan limits, thresholds
+        ├── ui.js                # Counter bar UI component
+        └── main.js              # Token counting, navigation, storage
 ```
 
 ---
