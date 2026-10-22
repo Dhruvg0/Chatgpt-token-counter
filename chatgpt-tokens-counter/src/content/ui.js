@@ -15,8 +15,8 @@
       'nav button span',
     ];
     for (const s of sels) {
-      const el = document.querySelector(s);
-      if (el?.textContent?.trim()) return el.textContent.trim();
+      const txt = document.querySelector(s)?.textContent?.trim();
+      if (txt && txt.length < 40 && !/profile|loading/i.test(txt)) return txt;
     }
     return null;
   }
@@ -55,11 +55,13 @@
     }
 
     initialize() {
-      chrome.storage.local.get(['gc:plan'], (r) => {
-        if (r['gc:plan']) this._plan = r['gc:plan'];
-        this._createBar();
-        this._attachBar();
-      });
+      try {
+        chrome.storage.local.get(['gc:plan'], (r) => {
+          if (r && r['gc:plan']) this._plan = r['gc:plan'];
+          this._createBar();
+          this._attachBar();
+        });
+      } catch { /* stale instance after extension reload */ }
       const mo = new MutationObserver(() => {
         if (!document.getElementById('gc-counter-bar')) this._attachBar();
       });
@@ -109,7 +111,7 @@
       planSel.value = this._plan;
       planSel.addEventListener('change', (e) => {
         this._plan = e.target.value;
-        chrome.storage.local.set({ 'gc:plan': this._plan });
+        try { chrome.storage.local.set({ 'gc:plan': this._plan }); } catch {}
         this._render();
       });
     }
