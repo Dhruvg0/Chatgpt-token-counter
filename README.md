@@ -42,16 +42,16 @@ Color changes based on how much of your daily limit you've used:
 
 > ⚠️ These limits are estimated from observed behavior — OpenAI doesn't publish official daily token caps. Treat numbers as a helpful approximation, not an exact meter.
 
-> v2.0.0 — Real o200k_base tokenizer (accurate for gpt-4o, o1, o3, o4-mini). Replaces chars/4 estimate.
+> v4.0.11 — Exact per-message token counting (o200k_base), shared total across tabs, resets at your local midnight.
 ---
 
 ## Installation
 
-### Chrome / Edge / Chromium
+### Chrome / Edge / Brave / Chromium
 
-1. Download [chatgpt-tokens-counter.zip](https://github.com/Dhruvg0/Chatgpt-token-counter/releases/download/v2.0.0/chatgpt-counter-v2.zip)
+1. Download [chatgpt-counter-v2-4.0.11.zip](https://github.com/Dhruvg0/Chatgpt-token-counter/releases/download/v4.0.11/chatgpt-counter-v2-4.0.11.zip) and unzip it
 2. Go to `chrome://extensions` and enable **Developer mode**
-3. Drag and drop the zip onto the page
+3. Click **Load unpacked** and select the unzipped `chatgpt-counter-v2` folder
 
 ### Manual (from source)
 
