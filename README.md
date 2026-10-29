@@ -1,5 +1,7 @@
 # ChatGPT Counter
 
+[![XERJ Corpus Hub contributor](https://hub.xerj.org/contributors/Dhruvg0/badge.svg)](https://hub.xerj.org/contributors/Dhruvg0)
+
 A lightweight browser extension that tracks your **daily token usage** on [chatgpt.com](https://chatgpt.com) — with a real-time progress bar, model detection, and plan-aware limits.
 
 ![ChatGPT Counter in action](screenshot-main.png)
